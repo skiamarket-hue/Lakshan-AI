@@ -3,109 +3,99 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
- content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Lakshan AI Selfie</title>
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f3f0ff;
-  text-align: center;
-  padding: 20px;
-}
-.card {
-  background: white;
-  border-radius: 20px;
-  padding: 20px;
-  max-width: 420px;
-  margin: auto;
-}
-video, img {
-  width: 100%;
-  border-radius: 15px;
-  margin-top: 15px;
-}
-video { transform: scaleX(-1); }
-button {
-  background: #673ab7;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  padding: 14px;
-  margin: 8px;
-  font-size: 16px;
-}
+body{font-family:Arial,sans-serif;background:#f3f0ff;
+text-align:center;padding:18px;color:#29213b}
+.card{background:white;border-radius:20px;padding:20px;
+max-width:440px;margin:auto}
+video,img{width:100%;border-radius:14px;margin-top:12px}
+video{transform:scaleX(-1)}
+button{background:#673ab7;color:white;border:0;
+border-radius:12px;padding:13px;margin:7px;font-size:16px}
+button:disabled{opacity:.5}
+.styles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.styles button{background:#eee;color:#333;margin:0}
+.styles button.selected{background:#673ab7;color:white}
 </style>
 </head>
 <body>
 <div class="card">
-<h1>✨ Lakshan AI</h1>
-<h2>Selfie with Lakshan</h2>
-<p>Take your selfie!</p>
+<h1>🐾 Lakshan AI</h1>
+<h2>Take a Selfie with Lakshan!</h2>
 
-<button onclick="startCamera()">
-📸 Open Front Camera
-</button>
+<img src="Lakshan1.jpeg" alt="Lakshan">
 
-<video id="camera"
- autoplay playsinline muted></video>
+<button onclick="startCamera()">📸 Open Front Camera</button>
+<video id="camera" autoplay playsinline muted></video>
+<button onclick="takeSelfie()">📷 Take Selfie</button>
 
-<button onclick="takeSelfie()">
-📷 Take Selfie
-</button>
+<canvas id="canvas" hidden></canvas>
+<img id="photo" alt="Your selfie" hidden>
 
-<canvas id="canvas"
- style="display:none"></canvas>
-<img id="photo" alt="Your selfie"
- style="display:none">
+<h3>Choose Your Style</h3>
+<div class="styles">
+<button onclick="choose('classic',this)">📷 Classic</button>
+<button onclick="choose('smile',this)">😊 Happy Smile</button>
+<button onclick="choose('garden',this)">🌸 Garden</button>
+<button onclick="choose('golden',this)">✨ Golden Evening</button>
+</div>
 
-<p id="status"></p>
+<button onclick="generate()">✨ Generate AI Photo</button>
+<p id="status">Take a selfie and choose a style.</p>
 </div>
 
 <script>
-let stream;
+let stream=null, selfie=null, style=null;
 
-async function startCamera() {
-  const status = document.getElementById("status");
-  try {
-    if (stream) {
-      stream.getTracks().forEach(t => t.stop());
-    }
-    stream = await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: { facingMode: { ideal: "user" } }
-    });
-    document.getElementById("camera").srcObject = stream;
-    status.textContent = "Front camera ready!";
-  } catch (error) {
-    status.textContent = "Camera unavailable: " + error.message;
-  }
+async function startCamera(){
+ try{
+  if(stream)stream.getTracks().forEach(t=>t.stop());
+  stream=await navigator.mediaDevices.getUserMedia({
+   audio:false,
+   video:{facingMode:{ideal:"user"}}
+  });
+  document.getElementById("camera").srcObject=stream;
+  document.getElementById("status").textContent="Camera ready!";
+ }catch(e){
+  document.getElementById("status").textContent=
+   "Camera error: "+e.message;
+ }
 }
 
-function takeSelfie() {
-  const video = document.getElementById("camera");
-  if (!stream || !video.videoWidth) {
-    document.getElementById("status").textContent =
-      "Open camera first.";
-    return;
-  }
-  const canvas = document.getElementById("canvas");
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  const ctx = canvas.getContext("2d");
-  ctx.translate(canvas.width, 0);
-  ctx.scale(-1, 1);
-  ctx.drawImage(video, 0, 0);
+function takeSelfie(){
+ const v=document.getElementById("camera");
+ if(!stream||!v.videoWidth){
+  alert("Open the camera first");return;
+ }
+ const c=document.getElementById("canvas");
+ c.width=v.videoWidth;c.height=v.videoHeight;
+ const ctx=c.getContext("2d");
+ ctx.translate(c.width,0);ctx.scale(-1,1);
+ ctx.drawImage(v,0,0);
+ selfie=c.toDataURL("image/jpeg",0.85);
+ const p=document.getElementById("photo");
+ p.src=selfie;p.hidden=false;
+ stream.getTracks().forEach(t=>t.stop());
+ stream=null;v.srcObject=null;
+ document.getElementById("status").textContent="Selfie ready!";
+}
 
-  const photo = document.getElementById("photo");
-  photo.src = canvas.toDataURL("image/jpeg");
-  photo.style.display = "block";
+function choose(s,button){
+ style=s;
+ document.querySelectorAll(".styles button")
+ .forEach(b=>b.classList.remove("selected"));
+ button.classList.add("selected");
+ document.getElementById("status").textContent=
+  "Selected: "+button.textContent;
+}
 
-  stream.getTracks().forEach(t => t.stop());
-  stream = null;
-  video.srcObject = null;
-  document.getElementById("status").textContent =
-    "Selfie ready!";
+function generate(){
+ if(!selfie){alert("Take a selfie first");return;}
+ if(!style){alert("Choose a style first");return;}
+ document.getElementById("status").textContent=
+ "Selfie and style ready. AI generation is not connected yet.";
 }
 </script>
 </body>
