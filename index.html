@@ -91,12 +91,75 @@ function choose(s,button){
   "Selected: "+button.textContent;
 }
 
-function generate(){
- if(!selfie){alert("Take a selfie first");return;}
- if(!style){alert("Choose a style first");return;}
- document.getElementById("status").textContent=
- "Selfie and style ready. AI generation is not connected yet.";
+
+async function generate(){
+  if(!selfie){
+    alert("Take a selfie first");
+    return;
+  }
+  if(!style){
+    alert("Choose a style first");
+    return;
+  }
+
+  const password = prompt("Enter your test password:");
+  if(!password) return;
+
+  const status = document.getElementById("status");
+  status.textContent = "Generating your AI photo...";
+
+  try {
+    const dogResponse = await fetch("Lakshan1.jpeg");
+    if(!dogResponse.ok) throw new Error("Lakshan photo not found");
+
+    const dogBlob = await dogResponse.blob();
+    const lakshan = await new Promise((resolve,reject)=>{
+      const reader = new FileReader();
+      reader.onload = ()=>resolve(reader.result);
+      reader.onerror = ()=>reject(new Error("Photo read failed"));
+      reader.readAsDataURL(dogBlob);
+    });
+
+    const response = await fetch(
+      "https://lakshan-ai-api.skiamarket.workers.dev/",
+      {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "X-Test-Password":password
+        },
+        body:JSON.stringify({selfie,lakshan,style})
+      }
+    );
+
+    const result = await response.json();
+
+    if(!response.ok || !result.image){
+      throw new Error(result.detail || result.error || "Generation failed");
+    }
+
+    let output = document.getElementById("aiResult");
+    if(!output){
+      output = document.createElement("img");
+      output.id = "aiResult";
+      status.after(output);
+    }
+    output.src = result.image;
+
+    let download = document.getElementById("downloadAI");
+    if(!download){
+      download = document.createElement("a");
+      download.id = "downloadAI";
+      download.textContent = "Download AI Photo";
+      download.style.display = "block";
+      download.style.marginTop = "15px";
+      output.after(download);
+    }
+    download.href = result.image;
+    download.download = "Lakshan-AI-Selfie.png";
+
+    status.textContent = "Your AI photo is ready!";
+  }catch(error){
+    status.textContent = "Error: " + error.message;
+  }
 }
-</script>
-</body>
-</html>
