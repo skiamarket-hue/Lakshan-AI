@@ -1,0 +1,78 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lakshan AI Selfie Photo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f0ff;
+      text-align: center;
+      padding: 25px;
+      color: #29213b;
+    }
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 25px;
+      max-width: 420px;
+      margin: auto;
+      box-shadow: 0 4px 20px #0002;
+    }
+    button {
+      background: #673ab7;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 15px 22px;
+      font-size: 17px;
+      cursor: pointer;
+    }
+    img {
+      max-width: 100%;
+      border-radius: 15px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>✨ Lakshan AI</h1>
+    <h2>Selfie Photo Experience</h2>
+    <p>Take a selfie and create a special
+       AI photo with Lakshan!</p>
+
+    <input type="file" id="selfie"
+      accept="image/*" capture="user"
+      style="display:none">
+
+    <button onclick="document.getElementById('selfie').click()">
+      📸 Take a Selfie
+    </button>
+
+    <div id="preview"></div>
+    <p id="status"></p>
+  </div>
+
+  <script>
+    document.getElementById('selfie')
+      .addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const url = URL.createObjectURL(file);
+        const img = document.createElement('img');
+        img.src = url;
+        img.onload = () => URL.revokeObjectURL(url);
+
+        const preview = document.getElementById('preview');
+        preview.replaceChildren(img);
+
+        document.getElementById('status').textContent =
+          'Selfie ready! AI photo generation will be added next.';
+      });
+  </script>
+</body>
+</html>
