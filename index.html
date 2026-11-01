@@ -2,77 +2,111 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Lakshan AI Selfie Photo</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f3f0ff;
-      text-align: center;
-      padding: 25px;
-      color: #29213b;
-    }
-    .card {
-      background: white;
-      border-radius: 20px;
-      padding: 25px;
-      max-width: 420px;
-      margin: auto;
-      box-shadow: 0 4px 20px #0002;
-    }
-    button {
-      background: #673ab7;
-      color: white;
-      border: none;
-      border-radius: 12px;
-      padding: 15px 22px;
-      font-size: 17px;
-      cursor: pointer;
-    }
-    img {
-      max-width: 100%;
-      border-radius: 15px;
-      margin-top: 20px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport"
+ content="width=device-width, initial-scale=1">
+<title>Lakshan AI Selfie</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f3f0ff;
+  text-align: center;
+  padding: 20px;
+}
+.card {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  max-width: 420px;
+  margin: auto;
+}
+video, img {
+  width: 100%;
+  border-radius: 15px;
+  margin-top: 15px;
+}
+video { transform: scaleX(-1); }
+button {
+  background: #673ab7;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  margin: 8px;
+  font-size: 16px;
+}
+</style>
 </head>
 <body>
-  <div class="card">
-    <h1>✨ Lakshan AI</h1>
-    <h2>Selfie Photo Experience</h2>
-    <p>Take a selfie and create a special
-       AI photo with Lakshan!</p>
+<div class="card">
+<h1>✨ Lakshan AI</h1>
+<h2>Selfie with Lakshan</h2>
+<p>Take your selfie!</p>
 
-    <input type="file" id="selfie"
-      accept="image/*" capture="user"
-      style="display:none">
+<button onclick="startCamera()">
+📸 Open Front Camera
+</button>
 
-    <button onclick="document.getElementById('selfie').click()">
-      📸 Take a Selfie
-    </button>
+<video id="camera"
+ autoplay playsinline muted></video>
 
-    <div id="preview"></div>
-    <p id="status"></p>
-  </div>
+<button onclick="takeSelfie()">
+📷 Take Selfie
+</button>
 
-  <script>
-    document.getElementById('selfie')
-      .addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
+<canvas id="canvas"
+ style="display:none"></canvas>
+<img id="photo" alt="Your selfie"
+ style="display:none">
 
-        const url = URL.createObjectURL(file);
-        const img = document.createElement('img');
-        img.src = url;
-        img.onload = () => URL.revokeObjectURL(url);
+<p id="status"></p>
+</div>
 
-        const preview = document.getElementById('preview');
-        preview.replaceChildren(img);
+<script>
+let stream;
 
-        document.getElementById('status').textContent =
-          'Selfie ready! AI photo generation will be added next.';
-      });
-  </script>
+async function startCamera() {
+  const status = document.getElementById("status");
+  try {
+    if (stream) {
+      stream.getTracks().forEach(t => t.stop());
+    }
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: { facingMode: { ideal: "user" } }
+    });
+    document.getElementById("camera").srcObject = stream;
+    status.textContent = "Front camera ready!";
+  } catch (error) {
+    status.textContent = "Camera unavailable: " + error.message;
+  }
+}
+
+function takeSelfie() {
+  const video = document.getElementById("camera");
+  if (!stream || !video.videoWidth) {
+    document.getElementById("status").textContent =
+      "Open camera first.";
+    return;
+  }
+  const canvas = document.getElementById("canvas");
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext("2d");
+  ctx.translate(canvas.width, 0);
+  ctx.scale(-1, 1);
+  ctx.drawImage(video, 0, 0);
+
+  const photo = document.getElementById("photo");
+  photo.src = canvas.toDataURL("image/jpeg");
+  photo.style.display = "block";
+
+  stream.getTracks().forEach(t => t.stop());
+  stream = null;
+  video.srcObject = null;
+  document.getElementById("status").textContent =
+    "Selfie ready!";
+}
+</script>
 </body>
 </html>
